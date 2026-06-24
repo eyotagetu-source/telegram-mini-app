@@ -3,33 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ETAG Store</title>
+    <title>ETAG Shoe Store</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { font-family: sans-serif; background: var(--tg-theme-bg-color); color: var(--tg-theme-text-color); margin: 0; padding: 10px; }
-        .product { border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; border-radius: 8px; }
-        button { background: #2481cc; color: white; border: none; padding: 10px; width: 100%; border-radius: 5px; cursor: pointer; }
+        body { font-family: sans-serif; background: var(--tg-theme-bg-color); color: var(--tg-theme-text-color); margin: 0; padding: 20px; }
+        .product { border: 1px solid #ccc; padding: 15px; margin-bottom: 15px; border-radius: 12px; text-align: center; }
+        button { background: #2481cc; color: white; border: none; padding: 10px; width: 100%; border-radius: 8px; cursor: pointer; }
     </style>
 </head>
 <body>
-    <h1>ETAG Sneakers</h1>
+    <h1>ETAG Shoe Store</h1>
     <div id="catalog">
         <div class="product">
             <h3>ETAG Runner Pro</h3>
             <p>$125.00</p>
-            <button onclick="order('ETAG Runner Pro')">Buy Now</button>
+            <button onclick="alert('Added to cart!')">Add to Cart</button>
+        </div>
+        <div class="product">
+            <h3>ETAG Urban Street</h3>
+            <p>$95.00</p>
+            <button onclick="alert('Added to cart!')">Add to Cart</button>
         </div>
     </div>
-
-    <script>
-        const tg = window.Telegram.WebApp;
-        tg.ready();
-
-        function order(productName) {
-            // This sends a message back to your bot chat
-            tg.sendData(`Order: ${productName}`);
-            tg.close();
-        }
-    </script>
 </body>
 </html>
