@@ -3,125 +3,334 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ETAG Smart Security Prototype</title>
-    <!-- Links Telegram's SDK to remove borders and access native mobile features -->
+    <title>ETAG Sneaker Store Prototype</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #1c1d1f;
-            color: #ffffff;
             margin: 0;
-            padding: 20px;
+            padding: 0;
             display: flex;
             flex-direction: column;
-            align-items: center;
+            background-color: var(--tg-theme-bg-color, #f9f9f9);
+            color: var(--tg-theme-text-color, #111111);
         }
+
+        /* Fixed Header */
         .header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .card {
-            background-color: #262729;
-            border-radius: 16px;
-            padding: 20px;
-            width: 100%;
-            max-width: 340px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-            margin-bottom: 15px;
-            box-sizing: border-box;
-        }
-        .status-container {
+            background-color: var(--tg-theme-secondary-bg-color, #ffffff);
+            padding: 15px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border-bottom: 1px solid var(--tg-theme-hint-color, #dddddd);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
-        .status-badge {
-            background-color: #06d6a0;
-            color: #1c1d1f;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-weight: bold;
+        .header h1 {
+            font-size: 20px;
+            margin: 0;
+        }
+        .cart-icon {
+            font-size: 24px;
+            cursor: pointer;
+            position: relative;
+        }
+        .cart-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background-color: #ff4d4d;
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* User Greeting Section */
+        .user-greeting {
+            padding: 12px;
+            background-color: var(--tg-theme-secondary-bg-color, #eaeaea);
+            text-align: center;
             font-size: 14px;
+            font-weight: 500;
         }
-        .btn {
+
+        /* Main Product Grid */
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            padding: 12px;
+            flex-grow: 1;
+        }
+
+        /* Individual Product Card */
+        .product-card {
+            background-color: var(--tg-theme-secondary-bg-color, #ffffff);
+            border-radius: 12px;
+            padding: 12px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .product-card img {
+            max-width: 100%;
+            height: 120px;
+            object-fit: contain;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        .product-card .name {
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 15px;
+        }
+        .product-card .price {
+            color: #2481cc;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .add-btn {
             background-color: #2481cc;
             color: white;
             border: none;
-            padding: 14px;
-            border-radius: 10px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        /* Sticky Bottom Bar with Checkout Button */
+        .bottom-bar {
+            background-color: var(--tg-theme-secondary-bg-color, #ffffff);
+            padding: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-top: 1px solid var(--tg-theme-hint-color, #dddddd);
+            position: sticky;
+            bottom: 0;
+            z-index: 100;
+        }
+        .checkout-btn {
+            background-color: #2481cc;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            display: none;
+        }
+        .checkout-btn.show {
+            display: block;
+        }
+
+        /* Cart Sidebar */
+        .cart-sidebar {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 85%;
+            max-width: 320px;
+            height: 100%;
+            background-color: var(--tg-theme-bg-color, white);
+            box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+            padding: 20px;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            overflow-y: auto;
+            box-sizing: border-box;
+        }
+        .cart-sidebar.open {
+            transform: translateX(0);
+        }
+        .cart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .close-cart {
+            font-size: 24px;
+            cursor: pointer;
+        }
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        .cart-item img {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+        }
+        .item-details {
+            flex-grow: 1;
+            margin-left: 10px;
+        }
+        .remove-item {
+            color: #ff4d4d;
+            cursor: pointer;
+        }
+        .total {
+            font-size: 18px;
+            font-weight: bold;
+            text-align: right;
+            margin-top: 20px;
+        }
+        .checkout-final {
+            background-color: #2481cc;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
             font-size: 16px;
             font-weight: bold;
             cursor: pointer;
             width: 100%;
-            margin-top: 10px;
-            transition: background 0.2s;
-        }
-        .btn:active {
-            background-color: #1a639b;
-        }
-        .btn-danger {
-            background-color: #ef476f;
-        }
-        .btn-danger:active {
-            background-color: #c93b5c;
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h2 style="margin-bottom: 5px;">ETAG Smart Security</h2>
-        <p id="welcome" style="color: #aaaaaa; margin-top: 0; font-size: 14px;">Connecting to system...</p>
-    </div>
-
-    <!-- Live Status Monitoring -->
-    <div class="card">
-        <div class="status-container">
-            <h3 style="margin: 0; font-size: 18px;">Door Locker</h3>
-            <div class="status-badge" id="lock-status">LOCKED</div>
+        <h1>ETAG Sneakers</h1>
+        <div class="cart-icon" onclick="toggleCart()">
+            🛒
+            <div class="cart-count" id="cart-count">0</div>
         </div>
     </div>
 
-    <!-- Remote Controls -->
-    <div class="card">
-        <h3 style="margin-top: 0; margin-bottom: 15px; font-size: 16px; color: #aaaaaa;">Remote Actions</h3>
-        <button class="btn" onclick="toggleLock()">Toggle Smart Lock</button>
-        <button class="btn btn-danger" onclick="triggerAlarm()">Test Emergency Alarm</button>
+    <div class="user-greeting" id="user-greeting">Loading app context...</div>
+
+    <div class="product-grid" id="product-grid"></div>
+
+    <div class="bottom-bar">
+        <button class="checkout-btn" id="checkout-main-btn" onclick="toggleCart()">View Cart & Checkout</button>
+    </div>
+
+    <div class="cart-sidebar" id="cart-sidebar">
+        <div class="cart-header">
+            <h2>Your Cart</h2>
+            <div class="close-cart" onclick="toggleCart()">✕</div>
+        </div>
+        <div id="cart-items"></div>
+        <div class="total" id="cart-total">Total: $0.00</div>
+        <button class="checkout-final" onclick="simulateCheckout()">Complete Order</button>
     </div>
 
     <script>
-        // Initialize the Telegram WebApp interface
+        // Initialize Telegram SDK
         const tg = window.Telegram.WebApp;
-        tg.expand(); // Expands the mini app sheet to maximize screen space
+        tg.expand();
+        tg.ready();
 
-        // Personalize the dashboard using the customer's actual Telegram info
         const user = tg.initDataUnsafe?.user;
-        if (user) {
-            document.getElementById('welcome').innerText = `Active Session: ${user.first_name}`;
-        } else {
-            document.getElementById('welcome').innerText = `Active Session: Authorized Manager`;
+        document.getElementById('user-greeting').innerText = user 
+            ? `Welcome, ${user.first_name}! Check out our catalog:` 
+            : "Welcome to ETAG Sneakers Store prototype!";
+
+        // Products database targeting your exact image paths
+        const products = [
+            { id: 1, name: 'ETAG Runner Pro', price: 125.00, image: 'images/d2.webp' },
+            { id: 2, name: 'ETAG Urban Street', price: 95.00, image: 'images/d3.webp' },
+            { id: 3, name: 'ETAG Classic Retro', price: 110.00, image: 'images/d4.webp' }
+        ];
+
+        let cart = [];
+
+        function renderProducts() {
+            const grid = document.getElementById('product-grid');
+            grid.innerHTML = '';
+            products.forEach(product => {
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                card.innerHTML = `
+                    <img src="${product.image}" onerror="this.src='https://via.placeholder.com/120?text=Shoe+Image'">
+                    <div class="name">${product.name}</div>
+                    <div class="price">$${product.price.toFixed(2)}</div>
+                    <button class="add-btn" onclick="addToCart(${product.id})">Add to Cart</button>
+                `;
+                grid.appendChild(card);
+            });
         }
 
-        function toggleLock() {
-            const badge = document.getElementById('lock-status');
-            if (badge.innerText === "LOCKED") {
-                badge.innerText = "UNLOCKED";
-                badge.style.backgroundColor = "#ef476f"; // Red warning color
+        function toggleCart() {
+            document.getElementById('cart-sidebar').classList.toggle('open');
+        }
+
+        function addToCart(id) {
+            const product = products.find(p => p.id === id);
+            const existing = cart.find(item => item.id === id);
+            if (existing) {
+                existing.quantity++;
             } else {
-                badge.innerText = "LOCKED";
-                badge.style.backgroundColor = "#06d6a0"; // Green secure color
+                cart.push({ ...product, quantity: 1 });
             }
-            // Triggers a premium haptic click sound/vibration on the user's mobile device
-            if (tg.HapticFeedback) {
-                tg.HapticFeedback.impactOccurred('medium');
-            }
+            updateUI();
+            if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
         }
 
-        function triggerAlarm() {
-            // Uses native Telegram popup windows for a seamless software feel
-            tg.showAlert("🚨 Emergency Protocol: Mock alarm signal transmitted to ETAG node successfully.");
+        function removeFromCart(id) {
+            cart = cart.filter(item => item.id !== id);
+            updateUI();
         }
+
+        function updateUI() {
+            const count = cart.reduce((sum, item) => sum + item.quantity, 0);
+            document.getElementById('cart-count').innerText = count;
+            
+            const mainBtn = document.getElementById('checkout-main-btn');
+            if (count > 0) mainBtn.classList.add('show');
+            else mainBtn.classList.remove('show');
+
+            const container = document.getElementById('cart-items');
+            container.innerHTML = '';
+            let total = 0;
+
+            cart.forEach(item => {
+                total += item.price * item.quantity;
+                container.innerHTML += `
+                    <div class="cart-item">
+                        <img src="${item.image}">
+                        <div class="item-details">
+                            <div><strong>${item.name}</strong></div>
+                            <div>$${item.price.toFixed(2)} x ${item.quantity}</div>
+                        </div>
+                        <div class="remove-item" onclick="removeFromCart(${item.id})">✕</div>
+                    </div>
+                `;
+            });
+            document.getElementById('cart-total').innerText = `Total: $${total.toFixed(2)}`;
+        }
+
+        function simulateCheckout() {
+            tg.showAlert("🎉 Order placed! This is a professional presentation template.");
+            cart = [];
+            updateUI();
+            toggleCart();
+        }
+
+        renderProducts();
     </script>
 </body>
 </html>
